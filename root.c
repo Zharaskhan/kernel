@@ -1,7 +1,7 @@
 #include <linux/module.h>	/* Needed by all modules */
 #include <linux/kernel.h>	/* Needed for KERN_INFO */
-#include <linux/fs.h>          /* Needed for char device registration */
-
+#include <linux/fs.h>          	/* Needed for char device registration */
+#include <linux/cdev.h>		/* Needed for char device registration */
 MODULE_LICENSE("GPL");             
 MODULE_AUTHOR("Zharaskhan Aman");
 MODULE_DESCRIPTION("A simple module to obtain root access");
@@ -27,6 +27,10 @@ int init_module(void)
 	}
 	
 	printk(KERN_INFO "Allocated %d major number", MAJOR(first));
+
+	//initializing custom structure
+	struct cdev *custom_cdev = cdev_alloc();
+	custom_cdev->ops = &fops;
 
 	return 0;
 }
