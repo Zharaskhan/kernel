@@ -5,3 +5,6 @@ modules.order
 Module.symvers
 *.mod.c
 *.mod.o
+*.mk
+*.cmd
+.tmp_versions/
