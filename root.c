@@ -46,6 +46,12 @@ ssize_t custom_write(struct file *f, const char __user *buf, size_t len, loff_t 
 	return len;
 }
 
+static int permission_uevent(struct device *dev, struct kobj_uevent_env *env)
+{
+    add_uevent_var(env, "DEVMODE=%#o", 0666);
+    return 0;
+}
+
 int init_module(void)
 {
 	printk(KERN_INFO "Root module starts.\n");
@@ -62,6 +68,7 @@ int init_module(void)
 
 	//register class
 	custom_class = class_create(THIS_MODULE, "magic");
+	custom_class->dev_uevent = permission_uevent;
 	//TODO error handler
 	
 	//register device
