@@ -12,6 +12,7 @@ static dev_t first;
 
 static struct device* custom_dev = NULL;
 static struct class*  custom_class = NULL;
+static struct cdev cdev;
 
 struct file_operations fops = {
 	.owner = THIS_MODULE,
@@ -22,7 +23,7 @@ ssize_t custom_write(struct file *f, const char __user *buf, size_t len, loff_t 
 {
 	//TODO
 	printk(KERN_INFO "Write function call\n");
-	return 0;
+	return len;
 }
 
 int init_module(void)
@@ -46,6 +47,15 @@ int init_module(void)
 	//register device
 	custom_dev = device_create(custom_class, NULL, first, NULL, "magic");
 	//TODO error handler
+
+	//init new device
+	cdev_init(&cdev, &fops);
+
+	cdev.owner = THIS_MODULE;
+	
+	//adding to kernel new device
+	cdev_add(&cdev, first, 1);
+
 	return 0;
 }
 
