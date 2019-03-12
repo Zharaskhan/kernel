@@ -9,36 +9,53 @@ MODULE_VERSION("0.1");
 
 static ssize_t custom_write(struct file *, const char __user *, size_t, loff_t *);
 static dev_t first;
+
+static struct device* custom_dev = NULL;
+static struct class*  custom_class = NULL;
+
 struct file_operations fops = {
 	.owner = THIS_MODULE,
 	.write = custom_write,
 };
 
+ssize_t custom_write(struct file *f, const char __user *buf, size_t len, loff_t *off)
+{
+	//TODO
+	printk(KERN_INFO "Write function call\n");
+	return 0;
+}
+
 int init_module(void)
 {
 	printk(KERN_INFO "Root module starts.\n");
 
-	//allocating device number
+	//Allocating memory
 	int error = alloc_chrdev_region(&first, 0, 1, "magic");
 	
 	if (error < 0) {
-		printk(KERN_ERR "Couldn't allocate numer for device");
+		printk(KERN_ERR "Couldn't allocate memory.\n");
 		return error;
 	}
 	
-	printk(KERN_INFO "Allocated %d major number", MAJOR(first));
+	printk(KERN_INFO "Device number %d:%d\n", MAJOR(first), MINOR(first));
 
-	//initializing custom structure
-	struct cdev *custom_cdev = cdev_alloc();
-	custom_cdev->ops = &fops;
-
+	//register class
+	custom_class = class_create(THIS_MODULE, "magic");
+	//TODO error handler
+	
+	//register device
+	custom_dev = device_create(custom_class, NULL, first, NULL, "magic");
+	//TODO error handler
 	return 0;
 }
 
 void cleanup_module(void)
 {
 	printk(KERN_INFO "Root module ends.\n");
-	
-	//deallocating device number
+
+	device_destroy(custom_class, first);
+	class_unregister(custom_class);
+	class_destroy(custom_class);
+	//Deallocating memory
 	unregister_chrdev_region(first, 1);
 }
