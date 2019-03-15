@@ -8,6 +8,7 @@
   
 ### Test
   1. `adduser testuser`
+  1. `su testuser`
   1. `cd /dev`
   1. `id`
   1. `touch temp`
