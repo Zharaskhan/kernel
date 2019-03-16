@@ -13,7 +13,7 @@
   1. `id`
   1. `touch temp`
   1. `#permission error`
-  1. `echo "show the mage" > ./magic`
+  1. `echo "show the magic" > ./magic`
   1. `id`
   1. `touch temp`
   1. `rm temp`
